@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if ! docker image inspect crypto-test:latest &>/dev/null; then
+    echo -e "=== Building Docker image...\n"
+    docker build -t crypto-test .
+    echo -e "\n"
+fi
+
+# https://stackoverflow.com/questions/1923435/how-do-i-echo-stars-when-reading-password-with-read
+read_password() {
+    unset password
+    prompt=${1}$'\n'
+    while IFS= read -p "$prompt" -r -s -n 1 char
+    do
+        if [[ $char == $'\0' ]]
+        then
+            break
+        fi
+        prompt='*'
+        password+="$char"
+    done
+    echo $password
+}
+
+if [[ ! -f .credentials ]]; then
+    echo -e "=== Setting up API credentials\n"
+    echo 'API_KEY_KRAKEN'=$(read_password "Enter API key:") > .credentials
+    echo
+    echo 'API_SEC_KRAKEN'=$(read_password "Enter API secret:") >> .credentials
+    echo
+    echo 'TOTP_SEC_KRAKEN'=$(read_password "Enter TOTP secret:") >> .credentials
+    chmod 400 .credentials
+    echo -e '\n'
+fi
+
+echo -e "=== Running Docker image\n"
+docker run --rm -v logs:/home/test/logs --user test --env-file .credentials crypto-test
