@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-file=crypto_test.log
+file=crypto_test_report.txt
 
 docker run --rm -v logs:/home/test/logs --user test -it crypto-test bash -c "cd logs; [ -f "$file" ] && cat $file"

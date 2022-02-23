@@ -6,9 +6,12 @@ USER test
 WORKDIR /home/test
 RUN mkdir logs
 
-COPY --chown=test src/crypto_test.py .
+COPY --chown=test src .
+COPY --chown=test test test
 
 RUN python -m pip install --upgrade pip
-RUN pip install behave pyotp --no-warn-script-location
+RUN pip install requests behave pyotp pprintjson pytest mockito --no-warn-script-location
 
-CMD [ "python", "crypto_test.py" ]
+RUN cd test; ../.local/bin/pytest
+
+CMD [ ".local/bin/behave" ]
