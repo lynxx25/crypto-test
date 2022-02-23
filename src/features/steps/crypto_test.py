@@ -86,7 +86,13 @@ class API:
         encoded = (str(data['nonce']) + postdata).encode()
         message = urlpath.encode() + hashlib.sha256(encoded).digest()
 
-        mac = hmac.new(base64.b64decode(self._api_sec), message, hashlib.sha512)
+        try:
+            mac = hmac.new(base64.b64decode(self._api_sec), message, hashlib.sha512)
+        except Exception:
+            msg = 'Signature creation Error: API secret in incorrect format'
+            log.error(msg)
+            raise self.APIError(msg)
+
         sigdigest = base64.b64encode(mac.digest())
         return sigdigest.decode()
 
@@ -108,10 +114,16 @@ class API:
 
         if request_type == RequestType.POST:
             assert data, 'No data provided'
-            data_prefix = {
-                'nonce': self._gen_nonce(),
-                'otp': self._totp.now(),
-            } if endpoint_type == EndpointType.PRIVATE else {}
+            try:
+                data_prefix = {
+                    'nonce': self._gen_nonce(),
+                    'otp': self._totp.now(),
+                } if endpoint_type == EndpointType.PRIVATE else {}
+            except Exception:
+                msg = 'OTP creation Error: TOTP secret in incorrect format'
+                log.error(msg)
+                raise self.APIError(msg)
+
             data = {
                 **data_prefix,
                 **data

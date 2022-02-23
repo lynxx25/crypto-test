@@ -7,8 +7,9 @@ def before_scenario(context, scenario):
 
 
 def after_tag(context, tag):
-    if not (request_str := getattr(context, 'request_str', None)):
-        # failure at 'given' stage
+    if not ((request_str := getattr(context, 'request_str', None)) and
+            (response := getattr(context, 'response', None))):
+        # failure at higher stage
         return
 
     if tag == 'report':
@@ -24,5 +25,5 @@ def after_tag(context, tag):
         ]
         with open('logs/crypto_test_report.txt', 'a') as f:
             f.writelines([line + '\n' for line in report_header])
-            ppjson(context.response, file=f)
+            ppjson(response, file=f)
             f.write('\n\n')
